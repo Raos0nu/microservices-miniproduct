@@ -1,6 +1,7 @@
 const userModel = require('../models/user.model');
 const { comparePassword, hashPassword } = require('../utils/password');
 const { generateAccessToken, verifyAccessToken } = require('../utils/jwt');
+const axios = require('axios');
 const logger = require('../utils/logger');
 
 class AuthController {
@@ -23,6 +24,21 @@ class AuthController {
         firstName,
         lastName
       });
+
+      // Also create user in user service database
+      try {
+        const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3002';
+        await axios.post(`${userServiceUrl}/api/users/sync`, {
+          id: user.id,
+          email: user.email,
+          firstName: user.first_name,
+          lastName: user.last_name
+        });
+        logger.info(`User synced to user service: ${email}`);
+      } catch (error) {
+        logger.error('Failed to sync user to user service:', error.message);
+        // Continue even if sync fails - user is still created in auth service
+      }
 
       logger.info(`User registered: ${email}`);
 

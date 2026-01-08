@@ -32,6 +32,7 @@ services:
       - DB_PASSWORD=postgres
       - JWT_SECRET=auth-service-secret-key
       - JWT_EXPIRES_IN=24h
+      - USER_SERVICE_URL=http://user-service:3002
     depends_on:
       - postgres-auth
       - redis

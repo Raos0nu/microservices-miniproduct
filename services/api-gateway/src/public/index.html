@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microservices Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            padding: 24px 32px;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            background: white;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .tab.active {
+            background: #333;
+            color: white;
+        }
+
+        .content {
+            background: white;
+            padding: 32px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            min-height: 500px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            color: #333;
+        }
+
+        h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #333;
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 6px;
+            color: #666;
+            font-size: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: #000;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #555;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 14px;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+        }
+
+        .order-card {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .order-header h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .order-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .order-meta-item {
+            color: #666;
+        }
+
+        .order-meta-item strong {
+            color: #333;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-processing { background: #cfe2ff; color: #084298; }
+        .status-shipped { background: #d1ecf1; color: #0c5460; }
+        .status-delivered { background: #d4edda; color: #155724; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+
+        .order-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .order-items {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .order-items table {
+            width: 100%;
+            font-size: 14px;
+        }
+
+        .order-items th {
+            text-align: left;
+            padding: 8px;
+            color: #666;
+            font-weight: 500;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .order-items td {
+            padding: 8px;
+            color: #333;
+        }
+
+        .filters {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filters input,
+        .filters select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 24px;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #f5f5f5;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination .page-info {
+            padding: 0 12px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .profile-card {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 24px;
+            max-width: 500px;
+        }
+
+        .profile-field {
+            margin-bottom: 16px;
+        }
+
+        .profile-field label {
+            display: block;
+            margin-bottom: 6px;
+            color: #666;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .profile-field input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 32px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Microservices Dashboard</h1>
+            <p>Manage Authentication, Users, and Orders</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('auth', this)">Authentication</button>
+            <button class="tab" onclick="switchTab('users', this)">Profile</button>
+            <button class="tab" onclick="switchTab('orders', this)">Orders</button>
+        </div>
+
+        <div class="content">
+            <!-- Auth Tab -->
+            <div id="auth" class="tab-content active">
+                <h2>Authentication</h2>
+                <div id="authMessage" class="message"></div>
+                
+                <div class="grid-2">
+                    <div>
+                        <h3>Register</h3>
+                        <form id="registerForm" onsubmit="handleRegister(event)">
+                            <div class="form-group">
+                                <label>First Name</label>
+                                <input type="text" id="regFirstName" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Last Name</label>
+                                <input type="text" id="regLastName" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="regEmail" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Password</label>
+                                <input type="password" id="regPassword" required>
+                            </div>
+                            <button type="submit" class="btn">Register</button>
+                        </form>
+                    </div>
+                    <div>
+                        <h3>Login</h3>
+                        <form id="loginForm" onsubmit="handleLogin(event)">
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="loginEmail" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Password</label>
+                                <input type="password" id="loginPassword" required>
+                            </div>
+                            <button type="submit" class="btn">Login</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="users" class="tab-content">
+                <h2>Profile Management</h2>
+                <div id="userMessage" class="message"></div>
+                <button class="btn" onclick="loadUserProfile()">Load Profile</button>
+                <div id="userProfile" class="profile-card hidden" style="margin-top: 24px;">
+                    <form id="profileForm" onsubmit="updateProfile(event)">
+                        <div class="profile-field">
+                            <label>Email</label>
+                            <input type="email" id="profileEmail" readonly>
+                        </div>
+                        <div class="profile-field">
+                            <label>First Name</label>
+                            <input type="text" id="profileFirstName" required>
+                        </div>
+                        <div class="profile-field">
+                            <label>Last Name</label>
+                            <input type="text" id="profileLastName" required>
+                        </div>
+                        <button type="submit" class="btn">Update Profile</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Orders Tab -->
+            <div id="orders" class="tab-content">
+                <h2>Order Management</h2>
+                <div id="orderMessage" class="message"></div>
+                
+                <div style="margin-bottom: 24px;">
+                    <button class="btn" onclick="showCreateOrderModal()">Create New Order</button>
+                    <button class="btn btn-secondary" onclick="loadOrders()" style="margin-left: 8px;">Refresh Orders</button>
+                </div>
+
+                <!-- Filters and Search -->
+                <div class="filters">
+                    <input type="text" id="searchOrders" placeholder="Search orders..." oninput="filterOrders()" style="flex: 1; min-width: 200px;">
+                    <select id="statusFilter" onchange="filterOrders()">
+                        <option value="">All Statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="processing">Processing</option>
+                        <option value="shipped">Shipped</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+
+                <div id="ordersList"></div>
+                <div id="pagination" class="pagination"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Order Modal -->
+    <div id="createOrderModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Order</h3>
+                <button class="close-btn" onclick="closeModal('createOrderModal')">&times;</button>
+            </div>
+            <form id="orderForm" onsubmit="handleCreateOrder(event)">
+                <div class="form-group">
+                    <label>Items (JSON array)</label>
+                    <textarea id="orderItems" rows="4" placeholder='[{"name": "Product 1", "quantity": 2, "price": 50}]' required></textarea>
+                    <small>Enter a valid JSON array. Each item must have: name, quantity, and price</small>
+                </div>
+                <div class="form-group">
+                    <label>Total Amount</label>
+                    <input type="number" id="orderTotal" step="0.01" required>
+                </div>
+                <button type="submit" class="btn">Create Order</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('createOrderModal')" style="margin-left: 8px;">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Order Modal -->
+    <div id="editOrderModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Order</h3>
+                <button class="close-btn" onclick="closeModal('editOrderModal')">&times;</button>
+            </div>
+            <form id="editOrderForm" onsubmit="handleUpdateOrder(event)">
+                <input type="hidden" id="editOrderId">
+                <div class="form-group">
+                    <label>Items (JSON array)</label>
+                    <textarea id="editOrderItems" rows="4" required></textarea>
+                    <small>Enter a valid JSON array. Each item must have: name, quantity, and price</small>
+                </div>
+                <div class="form-group">
+                    <label>Total Amount</label>
+                    <input type="number" id="editOrderTotal" step="0.01" required>
+                </div>
+                <button type="submit" class="btn">Update Order</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('editOrderModal')" style="margin-left: 8px;">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Update Status Modal -->
+    <div id="statusModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Update Order Status</h3>
+                <button class="close-btn" onclick="closeModal('statusModal')">&times;</button>
+            </div>
+            <form id="statusForm" onsubmit="handleUpdateStatus(event)">
+                <input type="hidden" id="statusOrderId">
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="statusSelect" required>
+                        <option value="pending">Pending</option>
+                        <option value="processing">Processing</option>
+                        <option value="shipped">Shipped</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn">Update Status</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('statusModal')" style="margin-left: 8px;">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        let authToken = localStorage.getItem('authToken') || '';
+        let currentUser = null;
+        let allOrders = [];
+        let filteredOrders = [];
+        let currentPage = 1;
+        const itemsPerPage = 10;
+
+        function switchTab(tabName, clickedElement) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            if (clickedElement) {
+                clickedElement.classList.add('active');
+            }
+            if (tabName === 'orders') {
+                loadOrders();
+            }
+        }
+
+        function showMessage(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            element.textContent = message;
+            element.className = `message ${type} show`;
+            element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            setTimeout(() => element.classList.remove('show'), 5000);
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        // Auth functions
+        async function handleRegister(e) {
+            e.preventDefault();
+            const form = e.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn?.textContent || 'Register';
+            
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Registering...';
+            }
+            
+            const data = {
+                firstName: document.getElementById('regFirstName').value,
+                lastName: document.getElementById('regLastName').value,
+                email: document.getElementById('regEmail').value,
+                password: document.getElementById('regPassword').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                let result = await response.json();
+                if (response.ok) {
+                    showMessage('authMessage', 'Registration successful!', 'success');
+                    form.reset();
+                } else {
+                    showMessage('authMessage', result.error || 'Registration failed', 'error');
+                }
+            } catch (error) {
+                showMessage('authMessage', `Network error: ${error.message}`, 'error');
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const form = e.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn?.textContent || 'Login';
+            
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Logging in...';
+            }
+            
+            const data = {
+                email: document.getElementById('loginEmail').value,
+                password: document.getElementById('loginPassword').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                let result = await response.json();
+                if (response.ok) {
+                    authToken = result.token;
+                    localStorage.setItem('authToken', authToken);
+                    currentUser = result.user;
+                    showMessage('authMessage', 'Login successful!', 'success');
+                    form.reset();
+                    setTimeout(() => {
+                        const usersTab = document.querySelector('.tab[onclick*="users"]');
+                        switchTab('users', usersTab);
+                        loadUserProfile();
+                    }, 1000);
+                } else {
+                    showMessage('authMessage', result.error || 'Login failed', 'error');
+                }
+            } catch (error) {
+                showMessage('authMessage', `Network error: ${error.message}`, 'error');
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+            }
+        }
+
+        // Profile functions
+        async function loadUserProfile() {
+            if (!authToken) {
+                showMessage('userMessage', 'Please login first', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/users/me`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    currentUser = result;
+                    document.getElementById('profileEmail').value = result.email || '';
+                    document.getElementById('profileFirstName').value = result.first_name || result.firstName || '';
+                    document.getElementById('profileLastName').value = result.last_name || result.lastName || '';
+                    document.getElementById('userProfile').classList.remove('hidden');
+                } else {
+                    showMessage('userMessage', result.error || 'Failed to load profile', 'error');
+                }
+            } catch (error) {
+                showMessage('userMessage', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function updateProfile(e) {
+            e.preventDefault();
+            if (!authToken || !currentUser) {
+                showMessage('userMessage', 'Please login first', 'error');
+                return;
+            }
+
+            const data = {
+                firstName: document.getElementById('profileFirstName').value,
+                lastName: document.getElementById('profileLastName').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/api/users/${currentUser.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    showMessage('userMessage', 'Profile updated successfully!', 'success');
+                    loadUserProfile();
+                } else {
+                    showMessage('userMessage', result.error || 'Failed to update profile', 'error');
+                }
+            } catch (error) {
+                showMessage('userMessage', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Order functions
+        function showCreateOrderModal() {
+            if (!authToken) {
+                showMessage('orderMessage', 'Please login first', 'error');
+                return;
+            }
+            document.getElementById('orderForm').reset();
+            showModal('createOrderModal');
+        }
+
+        async function handleCreateOrder(e) {
+            e.preventDefault();
+            if (!authToken) {
+                showMessage('orderMessage', 'Please login first', 'error');
+                return;
+            }
+
+            const itemsInput = document.getElementById('orderItems').value.trim();
+            let items;
+            try {
+                items = JSON.parse(itemsInput);
+                if (!Array.isArray(items) || items.length === 0) {
+                    showMessage('orderMessage', 'Items must be a non-empty JSON array', 'error');
+                    return;
+                }
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    if (!item.name || item.quantity === undefined || item.price === undefined) {
+                        showMessage('orderMessage', `Item ${i + 1} is missing required fields`, 'error');
+                        return;
+                    }
+                }
+            } catch (error) {
+                showMessage('orderMessage', 'Invalid JSON format: ' + error.message, 'error');
+                return;
+            }
+
+            const totalAmount = parseFloat(document.getElementById('orderTotal').value);
+            if (isNaN(totalAmount) || totalAmount <= 0) {
+                showMessage('orderMessage', 'Please enter a valid total amount', 'error');
+                return;
+            }
+
+            const data = { items, totalAmount };
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn?.textContent || 'Create Order';
+            
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Creating...';
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/orders`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                let result = await response.json();
+                if (response.ok) {
+                    showMessage('orderMessage', 'Order created successfully!', 'success');
+                    closeModal('createOrderModal');
+                    e.target.reset();
+                    loadOrders();
+                } else {
+                    showMessage('orderMessage', result.error || 'Failed to create order', 'error');
+                }
+            } catch (error) {
+                showMessage('orderMessage', `Network error: ${error.message}`, 'error');
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+            }
+        }
+
+        async function loadOrders() {
+            if (!authToken) {
+                showMessage('orderMessage', 'Please login first', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/orders/me`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    allOrders = result.orders || [];
+                    filterOrders();
+                } else {
+                    showMessage('orderMessage', result.error || 'Failed to load orders', 'error');
+                }
+            } catch (error) {
+                showMessage('orderMessage', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        function filterOrders() {
+            const searchTerm = document.getElementById('searchOrders').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            filteredOrders = allOrders.filter(order => {
+                const matchesSearch = !searchTerm || 
+                    order.id.toString().includes(searchTerm) ||
+                    JSON.stringify(order.items).toLowerCase().includes(searchTerm);
+                const matchesStatus = !statusFilter || order.status === statusFilter;
+                return matchesSearch && matchesStatus;
+            });
+            
+            currentPage = 1;
+            displayOrders();
+        }
+
+        function displayOrders() {
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageOrders = filteredOrders.slice(start, end);
+            
+            const ordersList = document.getElementById('ordersList');
+            if (pageOrders.length === 0) {
+                ordersList.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">No orders found</p>';
+                document.getElementById('pagination').innerHTML = '';
+                return;
+            }
+
+            ordersList.innerHTML = pageOrders.map(order => {
+                const items = Array.isArray(order.items) ? order.items : [];
+                const statusClass = `status-${order.status || 'pending'}`;
+                const canEdit = order.status !== 'cancelled' && order.status !== 'delivered';
+                
+                return `
+                    <div class="order-card">
+                        <div class="order-header">
+                            <h4>Order #${order.id}</h4>
+                            <span class="status-badge ${statusClass}">${(order.status || 'pending').toUpperCase()}</span>
+                        </div>
+                        <div class="order-meta">
+                            <div class="order-meta-item"><strong>Total:</strong> $${parseFloat(order.total_amount || order.totalAmount || 0).toFixed(2)}</div>
+                            <div class="order-meta-item"><strong>Created:</strong> ${new Date(order.created_at || order.createdAt).toLocaleString()}</div>
+                        </div>
+                        <div class="order-items">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Quantity</th>
+                                        <th>Price</th>
+                                        <th>Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${items.map(item => `
+                                        <tr>
+                                            <td>${item.name || 'N/A'}</td>
+                                            <td>${item.quantity || 0}</td>
+                                            <td>$${parseFloat(item.price || 0).toFixed(2)}</td>
+                                            <td>$${((item.quantity || 0) * (item.price || 0)).toFixed(2)}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="order-actions">
+                            ${canEdit ? `<button class="btn btn-sm" onclick="showEditOrderModal(${order.id})">Edit</button>` : ''}
+                            <button class="btn btn-sm btn-secondary" onclick="showStatusModal(${order.id}, '${order.status || 'pending'}')">Update Status</button>
+                            ${order.status !== 'cancelled' && order.status !== 'delivered' ? 
+                                `<button class="btn btn-sm btn-danger" onclick="cancelOrder(${order.id})">Cancel</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            displayPagination();
+        }
+
+        function displayPagination() {
+            const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+            const pagination = document.getElementById('pagination');
+            
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+
+            pagination.innerHTML = `
+                <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>Previous</button>
+                <span class="page-info">Page ${currentPage} of ${totalPages}</span>
+                <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>
+            `;
+        }
+
+        function changePage(page) {
+            const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+            if (page >= 1 && page <= totalPages) {
+                currentPage = page;
+                displayOrders();
+            }
+        }
+
+        function showEditOrderModal(orderId) {
+            const order = allOrders.find(o => o.id === orderId);
+            if (!order) return;
+
+            document.getElementById('editOrderId').value = orderId;
+            document.getElementById('editOrderItems').value = JSON.stringify(order.items || [], null, 2);
+            document.getElementById('editOrderTotal').value = order.total_amount || order.totalAmount || 0;
+            showModal('editOrderModal');
+        }
+
+        async function handleUpdateOrder(e) {
+            e.preventDefault();
+            const orderId = parseInt(document.getElementById('editOrderId').value);
+            const itemsInput = document.getElementById('editOrderItems').value.trim();
+            
+            let items;
+            try {
+                items = JSON.parse(itemsInput);
+                if (!Array.isArray(items) || items.length === 0) {
+                    showMessage('orderMessage', 'Items must be a non-empty JSON array', 'error');
+                    return;
+                }
+            } catch (error) {
+                showMessage('orderMessage', 'Invalid JSON format: ' + error.message, 'error');
+                return;
+            }
+
+            const totalAmount = parseFloat(document.getElementById('editOrderTotal').value);
+            if (isNaN(totalAmount) || totalAmount <= 0) {
+                showMessage('orderMessage', 'Please enter a valid total amount', 'error');
+                return;
+            }
+
+            const data = { items, totalAmount };
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn?.textContent || 'Update Order';
+            
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Updating...';
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/orders/${orderId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                let result = await response.json();
+                if (response.ok) {
+                    showMessage('orderMessage', 'Order updated successfully!', 'success');
+                    closeModal('editOrderModal');
+                    loadOrders();
+                } else {
+                    showMessage('orderMessage', result.error || 'Failed to update order', 'error');
+                }
+            } catch (error) {
+                showMessage('orderMessage', `Network error: ${error.message}`, 'error');
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+            }
+        }
+
+        function showStatusModal(orderId, currentStatus) {
+            document.getElementById('statusOrderId').value = orderId;
+            document.getElementById('statusSelect').value = currentStatus;
+            showModal('statusModal');
+        }
+
+        async function handleUpdateStatus(e) {
+            e.preventDefault();
+            const orderId = parseInt(document.getElementById('statusOrderId').value);
+            const status = document.getElementById('statusSelect').value;
+
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn?.textContent || 'Update Status';
+            
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Updating...';
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/orders/${orderId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ status })
+                });
+
+                let result = await response.json();
+                if (response.ok) {
+                    showMessage('orderMessage', 'Order status updated successfully!', 'success');
+                    closeModal('statusModal');
+                    loadOrders();
+                } else {
+                    showMessage('orderMessage', result.error || 'Failed to update status', 'error');
+                }
+            } catch (error) {
+                showMessage('orderMessage', `Network error: ${error.message}`, 'error');
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+            }
+        }
+
+        async function cancelOrder(orderId) {
+            if (!confirm('Are you sure you want to cancel this order?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/orders/${orderId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ status: 'cancelled' })
+                });
+
+                let result = await response.json();
+                if (response.ok) {
+                    showMessage('orderMessage', 'Order cancelled successfully!', 'success');
+                    loadOrders();
+                } else {
+                    showMessage('orderMessage', result.error || 'Failed to cancel order', 'error');
+                }
+            } catch (error) {
+                showMessage('orderMessage', `Network error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-load orders if logged in
+        if (authToken) {
+            loadOrders();
+        }
+    </script>
+</body>
+</html>

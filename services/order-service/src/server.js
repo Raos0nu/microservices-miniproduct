@@ -17,6 +17,10 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', service: 'order-service', timestamp: new Date().toISOString() });
 });
 
+app.get('/', (req, res) => {
+  res.json({ service: 'order-service', status: 'running', endpoints: ['/health', '/api/orders'] });
+});
+
 app.use('/api/orders', orderRoutes);
 
 app.use((err, req, res, next) => {
@@ -24,9 +28,25 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ error: err.message || 'Internal server error' });
 });
 
+// Initialize database schema on startup
+async function initializeSchema() {
+  try {
+    const pool = require('./database/connection').getPool();
+    const fs = require('fs');
+    const path = require('path');
+    const schemaPath = path.join(__dirname, 'database', 'schema.sql');
+    const schema = fs.readFileSync(schemaPath, 'utf8');
+    await pool.query(schema);
+    logger.info('Order Service: Database schema initialized');
+  } catch (error) {
+    logger.error('Order Service: Schema initialization error:', error);
+  }
+}
+
 async function startServer() {
   try {
     await connectDB();
+    await initializeSchema();
     app.listen(PORT, () => {
       logger.info(`Order Service running on port ${PORT}`);
     });

@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const path = require('path');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const logger = require('./utils/logger');
 
@@ -9,14 +10,38 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: false // Allow inline scripts for frontend
+}));
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+// Body parsing middleware - only for non-proxy routes
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/')) {
+    // Skip body parsing for API routes (they go through proxy)
+    return next();
+  }
+  express.json()(req, res, next);
+});
+
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/')) {
+    return next();
+  }
+  express.urlencoded({ extended: true })(req, res, next);
+});
 
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', service: 'api-gateway', timestamp: new Date().toISOString() });
+});
+
+// Serve static files (frontend)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Root route - serve frontend
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Service URLs
@@ -31,12 +56,22 @@ app.use('/api/auth', createProxyMiddleware({
   pathRewrite: {
     '^/api/auth': '/api/auth'
   },
+  timeout: 60000,
+  proxyTimeout: 60000,
   onProxyReq: (proxyReq, req, res) => {
-    logger.info(`[Gateway] Proxying ${req.method} ${req.url} to Auth Service`);
+    logger.info(`[Gateway] Proxying ${req.method} ${req.url} to Auth Service (${AUTH_SERVICE})`);
+  },
+  onProxyRes: (proxyRes, req, res) => {
+    logger.info(`[Gateway] Response from Auth Service: ${proxyRes.statusCode}`);
   },
   onError: (err, req, res) => {
-    logger.error(`[Gateway] Error proxying to Auth Service:`, err);
-    res.status(503).json({ error: 'Auth service unavailable' });
+    logger.error(`[Gateway] Error proxying to Auth Service:`, err.message);
+    if (!res.headersSent) {
+      res.status(503).json({ 
+        error: 'Auth service unavailable',
+        message: err.message || 'Service connection failed'
+      });
+    }
   }
 }));
 
@@ -47,12 +82,22 @@ app.use('/api/users', createProxyMiddleware({
   pathRewrite: {
     '^/api/users': '/api/users'
   },
+  timeout: 30000,
+  proxyTimeout: 30000,
   onProxyReq: (proxyReq, req, res) => {
-    logger.info(`[Gateway] Proxying ${req.method} ${req.url} to User Service`);
+    logger.info(`[Gateway] Proxying ${req.method} ${req.url} to User Service (${USER_SERVICE})`);
+  },
+  onProxyRes: (proxyRes, req, res) => {
+    logger.info(`[Gateway] Response from User Service: ${proxyRes.statusCode}`);
   },
   onError: (err, req, res) => {
-    logger.error(`[Gateway] Error proxying to User Service:`, err);
-    res.status(503).json({ error: 'User service unavailable' });
+    logger.error(`[Gateway] Error proxying to User Service:`, err.message);
+    if (!res.headersSent) {
+      res.status(503).json({ 
+        error: 'User service unavailable',
+        message: err.message || 'Service connection failed'
+      });
+    }
   }
 }));
 
@@ -63,12 +108,22 @@ app.use('/api/orders', createProxyMiddleware({
   pathRewrite: {
     '^/api/orders': '/api/orders'
   },
+  timeout: 30000,
+  proxyTimeout: 30000,
   onProxyReq: (proxyReq, req, res) => {
-    logger.info(`[Gateway] Proxying ${req.method} ${req.url} to Order Service`);
+    logger.info(`[Gateway] Proxying ${req.method} ${req.url} to Order Service (${ORDER_SERVICE})`);
+  },
+  onProxyRes: (proxyRes, req, res) => {
+    logger.info(`[Gateway] Response from Order Service: ${proxyRes.statusCode}`);
   },
   onError: (err, req, res) => {
-    logger.error(`[Gateway] Error proxying to Order Service:`, err);
-    res.status(503).json({ error: 'Order service unavailable' });
+    logger.error(`[Gateway] Error proxying to Order Service:`, err.message);
+    if (!res.headersSent) {
+      res.status(503).json({ 
+        error: 'Order service unavailable',
+        message: err.message || 'Service connection failed'
+      });
+    }
   }
 }));
 
